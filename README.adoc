@@ -1,0 +1,143 @@
+= Deployment bundle `macos-local-server`
+:author: Grove Pyree
+:email: grayarea@protonmail.ch
+:revdate: 2019.12.01
+:revremark: Initial commit
+:doctype: article
+// Visual
+:toc: macro
+// Subs:
+:hs: #
+:dhs: ##
+:us: _
+:dus: __
+:as: *
+:das: **
+:lsb: [
+:rsb: ]
+:url_dd: https://github.com/divine-dotfiles/divine-dotfiles
+
+++++
+<p align="center">
+<em>A deployment bundle for <a href="https://github.com/divine-dotfiles/divine-dotfiles">Divine.dotfiles</a></em>
+</p>
+++++
+
+The deployment bundle `macos-local-server` is under development.
+
+// TODO
+
+[[bundle-main]]
+== Description
+
+// TODO
+
+[[inun-main]]
+== Installing and uninstalling the bundle
+
+// TODO
+
+[[dpls-main]]
+== Bundled deployments
+
+:leveloffset: 2
+
+# Divine bundle '*macos-local-server*'
+:author: Grove Pyree
+:email: grayarea@protonmail.ch
+:revdate: 2019.12.01
+:revremark: Initial commit
+:doctype: article
+// Visual
+:toc:
+// Subs:
+:hs: #
+:dhs: ##
+:us: _
+:dus: __
+:as: *
+:das: **
+
+++++
+<p align="center">
+<em>A deployment bundle for <a href="https://github.com/divine-dotfiles/divine-dotfiles">Divine.dotfiles</a></em>
+</p>
+++++
+
+## Description
+
+Divine bundle '*macos-local-server*' sequentially installs (and removes if asked) `httpd` ('Apache server'), `php`, `mariadb` (read 'MySQL'), `dnsmasq`, and some configuration to make your Mac into a local web-development server.
+
+With some caveats, it follows instructions https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[in this article].
+
+After installing this deployment, you will be able to access your site at `/sites/my-site/index.html` by visiting URL `http://my-site.test`.
+
+[.note]
+[%noheader,cols="<.<a"]
+|===
+| To customize `php` and `httpd`, look at configuration files `~/.grail/assets/macos-local-server`.
+These files are linked into working installations of respective utilities.
+|===
+
+## Installation/removal
+
+Install via any Terminal.
+
+[WARNING]
+--
+Be careful with this deployment, if you happen to already have any of its parts installed.
+--
+
+### Don't have Divine.dotfiles installed?
+
+*Install both framework & this deployment* in one fell swoop (it's fully removable):
+
+[source,bash]
+----
+bash -c "TMP=\$(mktemp); URL=https:\
+//raw.github.com/divine-dotfiles/divine-dotfiles/master/lib/install/install.sh\
+; if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --ver\
+sion &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fa\
+iled to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf \
+>&2 \"\n==> Error: failed to download installation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash --yes \
+&& ~/.divine/intervene.sh attach macos-local-server --yes \
+&& ~/.divine/intervene.sh install --yes
+----
+
+Afterward, if you don't like it, here is the '**undo**' command (removes/restores _everything_):
+
+[source,bash]
+----
+~/.divine/intervene.sh remove --yes \
+&& ~/.divine/intervene.sh detach macos-local-server --yes \
+&& bash -c "TMP=\$(mktemp); URL=https://raw.\
+github.com/divine-dotfiles/divine-dotfiles/master/lib/uninstall/uninstall.sh; \
+if curl --version &>/dev/null; then curl -fsSL \$URL >\$TMP; elif wget --versi\
+on &>/dev/null; then wget -qO \$TMP \$URL; else printf >&2 \"\n==> Error: fail\
+ed to detect neither curl nor wget\n\"; rm -f \$TMP; exit 1; fi || { printf >&\
+2 \"\n==> Error: failed to download uninstallation script\n\"; rm -f \$TMP; ex\
+it 2; }; chmod +x \$TMP && \$TMP \"\$@\"; RC=\$?; rm -f \$TMP; ((RC)) && exit \
+3 || exit 0" bash --yes
+----
+
+### Already a Divine.dotfiles user?
+
+Attach this deployment to your copy of Divine.dotfiles as such:
+
+[source,bash]
+----
+di attach macos-local-server --yes
+----
+
+Then install as usual.
+
+If ever removing this deployment, make sure you uninstall it first, and then:
+
+[source,bash]
+----
+di detach macos-local-server --yes
+----
+
+:leveloffset!:

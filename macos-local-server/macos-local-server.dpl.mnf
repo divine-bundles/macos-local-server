@@ -1,0 +1,8 @@
+(prefix:configs)
+
+(os:macos)
+dnsmasq/dnsmasq.conf
+httpd/extra/httpd-ssl.conf
+httpd/extra/httpd-vhosts.conf
+httpd/httpd.conf
+php/php.ini
