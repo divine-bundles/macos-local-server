@@ -1,8 +1,8 @@
 #:title:        Divine deployment: macos-local-server
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.01
-#:revremark:    Initial commit
+#:revdate:      2019.12.02
+#:revremark:    Fix syntax error
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -82,7 +82,7 @@ d_dpl_install()
     "${BOLD}${GREEN}==>${NORMAL} ${BOLD}Linking php config${NORMAL}"
   real_path="$D__DPL_ASSET_DIR/php/php.ini"
   symlink_path="$( $( which php ) --ini | head -1 | awk -F': ' '{print $2}' )"
-  [ -d "$symlink_path" -a -r "$symlink_path"] || {
+  [ -d "$symlink_path" -a -r "$symlink_path" ] || {
     printf >&2 '%s\n' "Failed to locate php.ini directory"
     return 1
   }
@@ -216,7 +216,7 @@ d_dpl_remove()
     "${BOLD}${GREEN}==>${NORMAL} ${BOLD}Unlinking php config${NORMAL}"
   real_path="$D__DPL_ASSET_DIR/php/php.ini"
   symlink_path="$( $( which php ) --ini | head -1 | awk -F': ' '{print $2}' )"
-  [ -d "$symlink_path" -a -r "$symlink_path"] || {
+  [ -d "$symlink_path" -a -r "$symlink_path" ] || {
     printf >&2 '%s\n' "Failed to locate php.ini directory"
     return 1
   }
