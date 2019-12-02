@@ -1,1 +1,0 @@
-* [**`fix`**] Destroy a syntax error.
