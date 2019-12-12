@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Complete rewrite for D.d 3+
+#:revremark:    Fix minor issues
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -182,9 +182,7 @@ d_set_up_install()
     &&  d__cmd ---- /usr/local/bin/mysql_secure_installation \
     &&  d__cmd ---- sudo brew services start dnsmasq
   then
-    if ! d__stash -s -- set server_set_up; then
-      d__notify -lxh -- 'Failed to record setting up server'
-    fi
+    d__stash -s -- set server_set_up
     d__context -- lop
     return 0
   else
@@ -193,7 +191,11 @@ d_set_up_install()
 }
 d_set_up_post_install()
 {
-  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || return 0
+  if [ "$D__TASK_INSTALL_CODE" -ne 0 ]; then
+    d__notify -lx -- 'One of the server set-up commands failed' \
+      -n- 'Please, fix the problem and re-try'
+    return 0
+  fi
   if sudo apachectl configtest; then
     sudo apachectl -k restart
   else
@@ -207,7 +209,7 @@ d_set_up_post_install()
 d_set_up_remove()
 {
   d__context -- notch
-  d__context -- push 'Tearing down local macOS development server'
+  d__context -- push 'Dismantling local macOS development server'
   d__notify -u! -- 'Upcoming commands might require sudo privelege'
   if d__cmd ---- sudo brew services stop dnsmasq \
     && d__cmd ---- brew services stop mariadb \
@@ -215,9 +217,7 @@ d_set_up_remove()
     && d__cmd ---- sudo launchctl load -w \
       /System/Library/LaunchDaemons/org.apache.httpd.plist
   then
-    if ! d__stash -s -- unset server_set_up; then
-      d__notify -lxh -- 'Failed to record tearing down server'
-    fi
+    d__stash -s -- unset server_set_up
     d__context -- lop
     return 0
   else
@@ -226,7 +226,12 @@ d_set_up_remove()
 }
 d_set_up_post_remove()
 {
-  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || return 0
+  if [ "$D__TASK_REMOVE_CODE" -ne 0 ]; then
+    d__notify -lx -- 'One of the server dismantling commands failed' \
+      -n- 'Please, fix the problem and re-try'
+    D_ADDST_MLTSK_HALT=true
+    return 0
+  fi
   if sudo apachectl configtest; then
     sudo apachectl -k restart
   else
