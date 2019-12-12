@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Force manager-only versions of bottles
+#:revremark:    Make landings copy-queue exact
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -155,6 +155,7 @@ d_landings_check()
   D_QUEUE_ASSETS[$min+1]="$D__DPL_DIR/landings/index-brew.html"
   D_QUEUE_TARGETS[$min+0]="/Library/WebServer/Documents/index.html"
   D_QUEUE_TARGETS[$min+1]='/usr/local/var/www/index.html'
+  D_ADDST_COPY_QUEUE_EXACT=true
   d__copy_queue_check
 }
 d_landings_install()  { d__copy_queue_install;  }
