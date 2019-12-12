@@ -1,8 +1,11 @@
-(prefix:configs)
-
 (os:macos)
+
+(prefix:configs)
 dnsmasq/dnsmasq.conf
 httpd/extra/httpd-ssl.conf
 httpd/extra/httpd-vhosts.conf
 httpd/httpd.conf
 php/php.ini
+
+(prefix:)
+(r) resolvers/[a-z]+
