@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Make landings copy-queue exact
+#:revremark:    Make sure hooks return zero
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -47,7 +47,10 @@ d_bottles_check()
 }
 d_bottles_install() { d__pkg_queue_install; }
 d_bottles_post_install()
-{ [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true; }
+{
+  [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
 d_bottles_remove()  { d__pkg_queue_remove;  }
 
 
@@ -96,6 +99,7 @@ d_configs_check()
         d__notify -lx -- "Failed to record PHP etc directory: '$PHP_ETC_DIR'"
       fi
     fi
+    return 0
   }
   d_link_item_post_remove()
   {
@@ -104,12 +108,16 @@ d_configs_check()
         d__notify -lx -- "Failed to record PHP etc directory: '$PHP_ETC_DIR'"
       fi
     fi
+    return 0
   }
   d__link_queue_check
 }
 d_configs_install()  { d__link_queue_install;  }
 d_configs_post_install()
-{ [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true; }
+{
+  [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
 d_configs_remove()   { d__link_queue_remove;   }
 
 
@@ -137,7 +145,10 @@ d_resolvers_check()
 }
 d_resolvers_install()  { d__copy_queue_install;  }
 d_resolvers_post_install()
-{ [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true; }
+{
+  [ "$D__QUEUE_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
 d_resolvers_remove()   { d__copy_queue_remove;   }
 
 
