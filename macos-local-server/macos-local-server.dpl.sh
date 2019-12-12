@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.12
-#:revremark:    Fix minor issues
+#:revremark:    Force manager-only versions of bottles
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -41,6 +41,7 @@ d_dpl_remove()  { d__mltsk_remove;  }
 d_bottles_check()
 {
   D_QUEUE_MAIN=( openldap libiconv httpd php mariadb dnsmasq )
+  D_QUEUE_FLAGS=( 'm' 'm' 'm' 'm' 'm' 'm' )
   d__queue_split
   d__pkg_queue_check
 }
