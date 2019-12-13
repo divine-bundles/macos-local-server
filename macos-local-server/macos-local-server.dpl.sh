@@ -1,8 +1,8 @@
 #:title:        Divine deployment: macos-local-server
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.12
-#:revremark:    Fix checking wrong indicator
+#:revdate:      2019.12.13
+#:revremark:    Add sites dir creation and linking
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -26,6 +26,9 @@ d_dpl_check()
     configs \
     resolvers \
     landings \
+    sites_dir \
+    sites_link \
+    xcode_cl \
     set_up \
   )
   d__mltsk_check
@@ -48,7 +51,7 @@ d_bottles_check()
 d_bottles_install() { d__pkg_queue_install; }
 d_bottles_post_install()
 {
-  [ "$D__TASK_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
   return 0
 }
 d_bottles_remove()  { d__pkg_queue_remove;  }
@@ -70,7 +73,7 @@ d_configs_check()
     )"
   fi
   if ! [ -d "$PHP_ETC_DIR" ]; then
-    d__notify -l! -- 'Failed to extract path to php.ini directory'
+    d__notify -lx -- 'Failed to extract path to php.ini directory'
     D_ADDST_MLTSK_IRRELEVANT=true
     return 3
   fi
@@ -115,7 +118,7 @@ d_configs_check()
 d_configs_install()  { d__link_queue_install;  }
 d_configs_post_install()
 {
-  [ "$D__TASK_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
   return 0
 }
 d_configs_remove()   { d__link_queue_remove;   }
@@ -146,7 +149,7 @@ d_resolvers_check()
 d_resolvers_install()  { d__copy_queue_install;  }
 d_resolvers_post_install()
 {
-  [ "$D__TASK_CHECK_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
   return 0
 }
 d_resolvers_remove()   { d__copy_queue_remove;   }
@@ -166,11 +169,116 @@ d_landings_check()
   D_QUEUE_ASSETS[$min+1]="$D__DPL_DIR/landings/index-brew.html"
   D_QUEUE_TARGETS[$min+0]="/Library/WebServer/Documents/index.html"
   D_QUEUE_TARGETS[$min+1]='/usr/local/var/www/index.html'
+  d__queue_split
   D_ADDST_COPY_QUEUE_EXACT=true
   d__copy_queue_check
 }
 d_landings_install()  { d__copy_queue_install;  }
+d_landings_post_install()
+{
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
 d_landings_remove()   { d__copy_queue_remove;   }
+
+
+##
+## Task 'sites_dir' (custom)
+##
+d_sites_dir_check()
+{
+  # Compose directory path; perform check
+  local sites_dir="$HOME/Sites"
+  if [ -d "$sites_dir" ]; then
+    if [ "$D__REQ_ROUTINE" = install ]; then
+      d__notify -ls -- "Already exists: $sites_dir"
+      return 3
+    fi
+    d__stash -s -- has sites_dir_created && return 1 || return 7
+  elif [ -e "$sites_dir" ]; then
+    if [ "$D__REQ_ROUTINE" = remove ]; then
+      d__notify -l! -- "Existing non-directory: $sites_dir"
+    else
+      d__notify -lx -- "Existing non-directory: $sites_dir"
+      D_ADDST_MLTSK_IRRELEVANT=true
+      return 3
+    fi
+  else
+    if [ "$D__REQ_ROUTINE" = remove ]; then
+      d__notify -ls -- "Already not exists: $sites_dir"
+      return 3
+    fi
+    d__stash -s -- has sites_dir_created && return 6 || return 2
+  fi
+}
+d_sites_dir_install()
+{
+  # Compose directory path; make directory
+  local sites_dir="$HOME/Sites"
+  if mkdir -p -m 0700 -- "$sites_dir" &>/dev/null; then
+    d__stash -- set sites_dir_created
+    return 0
+  else
+    d__notify -lx -- "Failed to create directory: $sites_dir"
+    return 1
+  fi
+}
+d_sites_dir_post_install()
+{
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
+d_sites_dir_remove()
+{
+  # Compose directory path
+  local sites_dir="$HOME/Sites"
+
+  # If not empty, prompt user
+  if [ -n "$( ls -Aq -- "$sites_dir" 2>/dev/null )" ]; then
+    d__prompt -xp 'Erase?' -- \
+      "This will ${BOLD}completely erase$NORMAL non-empty directory at:" \
+      -i- "$BOLD$RED$REVERSE $sites_dir $NORMAL"
+    case $? in
+      1)  return 2;;
+      *)  :;;
+    esac
+  fi
+
+  # Proceed to removal
+  if rm -rf -- "$sites_dir" &>/dev/null; then
+    d__stash -s -- unset sites_dir_created
+    return 0
+  else
+    return 1
+  fi
+}
+
+
+##
+## Task 'sites_link' (link-queue)
+##
+d_sites_link_check()
+{
+  local min=${#D_QUEUE_MAIN[@]}
+  D_QUEUE_MAIN[$min+0]='~/Sites'
+  D_QUEUE_ASSETS[$min+0]="$HOME/Sites"
+  D_QUEUE_TARGETS[$min+0]="/sites"
+  d__link_queue_check
+}
+d_sites_link_install()  { d__link_queue_install;  }
+d_sites_link_post_install()
+{
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
+d_sites_link_remove()   { d__link_queue_remove;   }
+
+
+##
+## Task 'xcode_cl' (custom)
+##
+
+d_xcode_cl_install()  { xcode-select --install; }
 
 
 ##
@@ -186,8 +294,7 @@ d_set_up_install()
   d__context -- notch
   d__context -- push 'Setting up local macOS development server'
   d__notify -u! -- 'Upcoming commands might require sudo privelege'
-  if d__cmd ---- xcode-select --install \
-    &&  d__cmd ---- sudo apachectl stop \
+  if d__cmd ---- sudo apachectl stop \
     &&  d__cmd ---- sudo launchctl unload -w \
           /System/Library/LaunchDaemons/org.apache.httpd.plist \
     &&  d__cmd ---- sudo brew services start httpd \
