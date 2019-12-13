@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.13
-#:revremark:    Add sites dir creation and linking
+#:revremark:    Move sites link to acceptable location
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -262,7 +262,7 @@ d_sites_link_check()
   local min=${#D_QUEUE_MAIN[@]}
   D_QUEUE_MAIN[$min+0]='~/Sites'
   D_QUEUE_ASSETS[$min+0]="$HOME/Sites"
-  D_QUEUE_TARGETS[$min+0]="/sites"
+  D_QUEUE_TARGETS[$min+0]="/usr/local/sites"
   d__link_queue_check
 }
 d_sites_link_install()  { d__link_queue_install;  }
@@ -287,10 +287,16 @@ d_xcode_cl_install()  { xcode-select --install; }
 
 d_set_up_check()
 {
-  d__stash -s -- has server_set_up && return 5 || return 9
+  d__stash -s -- has server_set_up && return 1 || return 2
 }
 d_set_up_install()
 {
+  d__prompt -x -- 'About to shut down built-in httpd and launch services for' \
+    'Homebrew httpd, mariadb, and dnsmasq'
+  case $? in
+    1)  return 2;;
+    *)  :;;
+  esac
   d__context -- notch
   d__context -- push 'Setting up local macOS development server'
   d__notify -u! -- 'Upcoming commands might require sudo privelege'
@@ -328,6 +334,12 @@ d_set_up_post_install()
 }
 d_set_up_remove()
 {
+  d__prompt -x -- 'About to shut down services for Homebrew httpd, mariadb,' \
+    'and dnsmasq and launch built-in httpd'
+  case $? in
+    1)  return 2;;
+    *)  :;;
+  esac
   d__context -- notch
   d__context -- push 'Dismantling local macOS development server'
   d__notify -u! -- 'Upcoming commands might require sudo privelege'

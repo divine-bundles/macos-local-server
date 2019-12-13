@@ -1,8 +1,8 @@
 # Divine bundle '*macos-local-server*'
 :author: Grove Pyree
 :email: grayarea@protonmail.ch
-:revdate: 2019.12.01
-:revremark: Initial commit
+:revdate: 2019.12.13
+:revremark: Move sites link to acceptable location
 :doctype: article
 // Visual
 :toc:
@@ -26,7 +26,7 @@ Divine bundle '*macos-local-server*' sequentially installs (and removes if asked
 
 With some caveats, it follows instructions https://getgrav.org/blog/macos-mojave-apache-multiple-php-versions[in this article].
 
-After installing this deployment, you will be able to access your site at `/sites/my-site/index.html` by visiting URL `http://my-site.test`.
+After installing this deployment, you will be able to access your site at `~/Sites/my-site/index.html` by visiting URL `http://my-site.test`.
 
 [.note]
 [%noheader,cols="<.<a"]
