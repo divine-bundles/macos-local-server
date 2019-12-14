@@ -1,8 +1,8 @@
 #:title:        Divine deployment: macos-local-server
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.13
-#:revremark:    Move sites link to acceptable location
+#:revdate:      2019.12.14
+#:revremark:    Remove xcode cl tools install from flow
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -28,7 +28,6 @@ d_dpl_check()
     landings \
     sites_dir \
     sites_link \
-    xcode_cl \
     set_up \
   )
   d__mltsk_check
@@ -272,13 +271,6 @@ d_sites_link_post_install()
   return 0
 }
 d_sites_link_remove()   { d__link_queue_remove;   }
-
-
-##
-## Task 'xcode_cl' (custom)
-##
-
-d_xcode_cl_install()  { xcode-select --install; }
 
 
 ##
