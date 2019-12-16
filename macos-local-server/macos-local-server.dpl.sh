@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.16
-#:revremark:    Fix syntax error
+#:revremark:    Improve handling of certificate links
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -388,13 +388,20 @@ d_cert_remove()
 ##
 d_cert_link_check()
 {
-  local min=${#D_QUEUE_MAIN[@]}
-  D_QUEUE_MAIN[$min+0]='server.crt'
-  D_QUEUE_MAIN[$min+1]='server.key'
-  D_QUEUE_ASSETS[$min+0]='/usr/local/etc/httpd/server.crt'
-  D_QUEUE_ASSETS[$min+1]='/usr/local/etc/httpd/server.key'
-  D_QUEUE_TARGETS[$min+0]="$D__DPL_ASSET_DIR/certificates/server.crt"
-  D_QUEUE_TARGETS[$min+1]="$D__DPL_ASSET_DIR/certificates/server.key"
+  local min=${#D_QUEUE_MAIN[@]} files_present=false
+  if [ -f "$D__DPL_ASSET_DIR/certificates/server.crt" ]; then
+    files_present=true
+    D_QUEUE_MAIN[$min+0]='server.crt'
+    D_QUEUE_ASSETS[$min+0]='/usr/local/etc/httpd/server.crt'
+    D_QUEUE_TARGETS[$min+0]="$D__DPL_ASSET_DIR/certificates/server.crt"
+  fi
+  if [ -f "$D__DPL_ASSET_DIR/certificates/server.key" ]; then
+    files_present=true
+    D_QUEUE_MAIN[$min+1]='server.key'
+    D_QUEUE_ASSETS[$min+1]='/usr/local/etc/httpd/server.key'
+    D_QUEUE_TARGETS[$min+1]="$D__DPL_ASSET_DIR/certificates/server.key"
+  fi
+  $files_present || return 3
   d__link_queue_check
 }
 d_cert_link_install()  { d__link_queue_install;  }
