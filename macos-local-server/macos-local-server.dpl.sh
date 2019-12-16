@@ -1,8 +1,8 @@
 #:title:        Divine deployment: macos-local-server
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
-#:revdate:      2019.12.14
-#:revremark:    Remove xcode cl tools install from flow
+#:revdate:      2019.12.16
+#:revremark:    Add certificate generation
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -28,6 +28,8 @@ d_dpl_check()
     landings \
     sites_dir \
     sites_link \
+    cert \
+    cert_link \
     set_up \
   )
   d__mltsk_check
@@ -261,7 +263,8 @@ d_sites_link_check()
   local min=${#D_QUEUE_MAIN[@]}
   D_QUEUE_MAIN[$min+0]='~/Sites'
   D_QUEUE_ASSETS[$min+0]="$HOME/Sites"
-  D_QUEUE_TARGETS[$min+0]="/usr/local/sites"
+  D_QUEUE_TARGETS[$min+0]='/usr/local/sites'
+  d__queue_split
   d__link_queue_check
 }
 d_sites_link_install()  { d__link_queue_install;  }
@@ -271,6 +274,136 @@ d_sites_link_post_install()
   return 0
 }
 d_sites_link_remove()   { d__link_queue_remove;   }
+
+
+##
+## Task 'cert' (custom)
+##
+d_cert_check()
+{
+  d__stash -s -- has certificates_set_up && return 1 || return 2
+}
+d_cert_install()
+{
+  # Switch context; warn about sudo operations
+  d__context -- notch
+  d__context -- push 'Setting up local self-signed certificates'
+  d__notify -u! -- 'Upcoming commands require sudo privelege'
+
+  ## Generate root certificate (and password-less private key), which will be 
+  #. trusted by the OS and used to sign any number of certificates for locally 
+  #. hosted domains.
+  #
+  if ! openssl req -x509 -new -newkey rsa:2048 -nodes -sha256 -days 730 \
+    -keyout "$D__DPL_ASSET_DIR/ceritficates/rootCA.key" \
+    -out "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem" \
+    -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=com.divine-dotfiles.macos-local-server' \
+  then
+    d__fail -- 'Failed to create root certificate'
+    return 1
+  fi
+
+  ## A relatively uncommon common name (CN) is used for the root certificate to 
+  #. prevent clobbering of actual certificates. As a precaution, delete 
+  #. pre-existing certificate with that CN, if any exists, from the system 
+  #. keychain.
+  #
+  sudo security delete-certificate \
+    -c 'com.divine-dotfiles.macos-local-server' \
+    '/Library/Keychains/System.keychain'
+  # Add root certificate as trusted to system keychain
+  if ! sudo security add-trusted-cert \
+    -d -r trustRoot \
+    -k '/Library/Keychains/System.keychain' \
+    "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem"
+  then
+    d__fail -- 'Failed to trust root certificate'
+    return 1
+  fi
+
+  ## Create a child certificate signing request with no domains attached to it 
+  #. yet; the attachments will come at the signing phase.
+  #
+  if ! openssl req -new -newkey rsa:2048 -nodes -sha256 \
+    -keyout "$D__DPL_ASSET_DIR/ceritficates/server.key" \
+    -out "$D__DPL_ASSET_DIR/ceritficates/server.csr" \
+    -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=Local test sites'
+  then
+    d__fail -- 'Failed to create certificate signing request'
+    return 1
+  fi
+  
+  ## Sign the certificate, attaching extension file, which forces usage of 
+  #. x509v3. The extension file contains usage directives (which might be 
+  #. required by some browsers) and certified domains via subjectAltName (SAN).
+  #
+  ## Known issues:
+  #
+  ## Browsers do not support top level wildcards, hence *.divine.test instead 
+  #. of more logical *.test.
+  #
+  ## Current Safari 13.0.4 has an apparent bug that invalidates wildcards 
+  #. specifically on .test domains, rendering the resulting certificate 
+  #. unusable on macOS currently.
+  #
+  ## Firefox needs 'security.enterprise_roots.enabled' set to 'true' in 
+  #. 'about:config' page.
+  #
+  if ! openssl x509 -req -sha256 -days 730 \
+    -in "$D__DPL_ASSET_DIR/ceritficates/server.csr" \
+    -CA "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem" \
+    -CAkey "$D__DPL_ASSET_DIR/ceritficates/rootCA.key" \
+    -CAcreateserial \
+    -extfile "$D__DPL_ASSET_DIR/ceritficates/v3.ext" \
+    -out "$D__DPL_ASSET_DIR/ceritficates/server.crt"
+  then
+    d__fail -- 'Failed to sign certificate signing request'
+    return 1
+  fi
+
+  d__stash -s -- set certificates_set_up
+}
+d_cert_post_install()
+{
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
+d_cert_remove()
+{
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.crt"
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.csr"
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.key"
+  sudo security delete-certificate \
+    -c 'com.divine-dotfiles.macos-local-server' \
+    '/Library/Keychains/System.keychain'
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem"
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.srl"
+  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.key"
+  d__stash -s -- unset certificates_set_up
+}
+
+
+##
+## Task 'cert_link' (link-queue)
+##
+d_cert_link_check()
+{
+  local min=${#D_QUEUE_MAIN[@]}
+  D_QUEUE_MAIN[$min+0]='server.crt'
+  D_QUEUE_MAIN[$min+1]='server.key'
+  D_QUEUE_ASSETS[$min+0]='/usr/local/etc/httpd/server.crt'
+  D_QUEUE_ASSETS[$min+1]='/usr/local/etc/httpd/server.key'
+  D_QUEUE_TARGETS[$min+0]="$D__DPL_ASSET_DIR/certificates/server.crt"
+  D_QUEUE_TARGETS[$min+1]="$D__DPL_ASSET_DIR/certificates/server.key"
+  d__link_queue_check
+}
+d_cert_link_install()  { d__link_queue_install;  }
+d_cert_link_post_install()
+{
+  [ "$D__TASK_INSTALL_CODE" -eq 0 ] || D_ADDST_MLTSK_HALT=true
+  return 0
+}
+d_cert_link_remove()   { d__link_queue_remove;   }
 
 
 ##

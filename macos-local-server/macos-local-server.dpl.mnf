@@ -9,3 +9,4 @@ php/php.ini
 
 (prefix:)
 (r) resolvers/[a-z]+
+certificates/v3.ext
