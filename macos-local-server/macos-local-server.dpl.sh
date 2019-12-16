@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.16
-#:revremark:    Add certificate generation
+#:revremark:    Fix syntax error
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -297,7 +297,7 @@ d_cert_install()
   if ! openssl req -x509 -new -newkey rsa:2048 -nodes -sha256 -days 730 \
     -keyout "$D__DPL_ASSET_DIR/ceritficates/rootCA.key" \
     -out "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem" \
-    -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=com.divine-dotfiles.macos-local-server' \
+    -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=com.divine-dotfiles.macos-local-server'
   then
     d__fail -- 'Failed to create root certificate'
     return 1
