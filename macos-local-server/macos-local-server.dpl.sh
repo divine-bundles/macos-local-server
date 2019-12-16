@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.16
-#:revremark:    I cannot type
+#:revremark:    Fix invalid queue set-up
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -392,14 +392,14 @@ d_cert_link_check()
   if [ -f "$D__DPL_ASSET_DIR/certificates/server.crt" ]; then
     files_present=true
     D_QUEUE_MAIN[$min+0]='server.crt'
-    D_QUEUE_ASSETS[$min+0]='/usr/local/etc/httpd/server.crt'
-    D_QUEUE_TARGETS[$min+0]="$D__DPL_ASSET_DIR/certificates/server.crt"
+    D_QUEUE_ASSETS[$min+0]="$D__DPL_ASSET_DIR/certificates/server.crt"
+    D_QUEUE_TARGETS[$min+0]='/usr/local/etc/httpd/server.crt'
   fi
   if [ -f "$D__DPL_ASSET_DIR/certificates/server.key" ]; then
     files_present=true
     D_QUEUE_MAIN[$min+1]='server.key'
-    D_QUEUE_ASSETS[$min+1]='/usr/local/etc/httpd/server.key'
-    D_QUEUE_TARGETS[$min+1]="$D__DPL_ASSET_DIR/certificates/server.key"
+    D_QUEUE_ASSETS[$min+1]="$D__DPL_ASSET_DIR/certificates/server.key"
+    D_QUEUE_TARGETS[$min+1]='/usr/local/etc/httpd/server.key'
   fi
   $files_present || return 3
   d__link_queue_check
