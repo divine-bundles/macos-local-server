@@ -2,7 +2,7 @@
 #:author:       Grove Pyree
 #:email:        grayarea@protonmail.ch
 #:revdate:      2019.12.16
-#:revremark:    Remove flags from dpl
+#:revremark:    I cannot type
 #:created_at:   2019.06.30
 
 D_DPL_NAME='macos-local-server'
@@ -295,8 +295,8 @@ d_cert_install()
   #. hosted domains.
   #
   if ! openssl req -x509 -new -newkey rsa:2048 -nodes -sha256 -days 730 \
-    -keyout "$D__DPL_ASSET_DIR/ceritficates/rootCA.key" \
-    -out "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem" \
+    -keyout "$D__DPL_ASSET_DIR/certificates/rootCA.key" \
+    -out "$D__DPL_ASSET_DIR/certificates/rootCA.pem" \
     -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=com.divine-dotfiles.macos-local-server'
   then
     d__fail -- 'Failed to create root certificate'
@@ -315,7 +315,7 @@ d_cert_install()
   if ! sudo security add-trusted-cert \
     -d -r trustRoot \
     -k '/Library/Keychains/System.keychain' \
-    "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem"
+    "$D__DPL_ASSET_DIR/certificates/rootCA.pem"
   then
     d__fail -- 'Failed to trust root certificate'
     return 1
@@ -325,8 +325,8 @@ d_cert_install()
   #. yet; the attachments will come at the signing phase.
   #
   if ! openssl req -new -newkey rsa:2048 -nodes -sha256 \
-    -keyout "$D__DPL_ASSET_DIR/ceritficates/server.key" \
-    -out "$D__DPL_ASSET_DIR/ceritficates/server.csr" \
+    -keyout "$D__DPL_ASSET_DIR/certificates/server.key" \
+    -out "$D__DPL_ASSET_DIR/certificates/server.csr" \
     -subj '/C=US/ST=Firmament/L=Pantheon/O=Divine.dotfiles/OU=Deployment macos-local-server/CN=Local test sites'
   then
     d__fail -- 'Failed to create certificate signing request'
@@ -350,12 +350,12 @@ d_cert_install()
   #. 'about:config' page.
   #
   if ! openssl x509 -req -sha256 -days 730 \
-    -in "$D__DPL_ASSET_DIR/ceritficates/server.csr" \
-    -CA "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem" \
-    -CAkey "$D__DPL_ASSET_DIR/ceritficates/rootCA.key" \
+    -in "$D__DPL_ASSET_DIR/certificates/server.csr" \
+    -CA "$D__DPL_ASSET_DIR/certificates/rootCA.pem" \
+    -CAkey "$D__DPL_ASSET_DIR/certificates/rootCA.key" \
     -CAcreateserial \
-    -extfile "$D__DPL_ASSET_DIR/ceritficates/v3.ext" \
-    -out "$D__DPL_ASSET_DIR/ceritficates/server.crt"
+    -extfile "$D__DPL_ASSET_DIR/certificates/v3.ext" \
+    -out "$D__DPL_ASSET_DIR/certificates/server.crt"
   then
     d__fail -- 'Failed to sign certificate signing request'
     return 1
@@ -370,15 +370,15 @@ d_cert_post_install()
 }
 d_cert_remove()
 {
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.crt"
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.csr"
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/server.key"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/server.crt"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/server.csr"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/server.key"
   sudo security delete-certificate \
     -c 'com.divine-dotfiles.macos-local-server' \
     '/Library/Keychains/System.keychain'
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.pem"
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.srl"
-  rm -f -- "$D__DPL_ASSET_DIR/ceritficates/rootCA.key"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/rootCA.pem"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/rootCA.srl"
+  rm -f -- "$D__DPL_ASSET_DIR/certificates/rootCA.key"
   d__stash -s -- unset certificates_set_up
 }
 
